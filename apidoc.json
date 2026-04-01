@@ -1,0 +1,7 @@
+{
+  "name": "CS300 Lab 9 API",
+  "version": "1.0.0",
+  "description": "Express + Sequelize (SQLite) demo",
+  "title": "CS300 Lab 9 API docs",
+  "url": "http://localhost:3000"
+}
