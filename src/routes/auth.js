@@ -6,16 +6,14 @@ const { User } = require("../models");
 const router = express.Router();
 const SALT_ROUNDS = 10;
 
-// TODO (lab — apidoc): Document error responses for both auth routes (@apiError 400/401/409 with examples).
-
 /**
  * @api {post} /api/auth/register Register
  * @apiName Register
  * @apiGroup Auth
- * @apiDescription Create a new account. Password is hashed with bcrypt before storage.
+ * @apiDescription Create a new account. Password is hashed with bcrypt (10 salt rounds) before storage.
  *
- * @apiBody {String} email User email (unique).
- * @apiBody {String} password Plaintext password (hashed server-side).
+ * @apiBody {String} email User email (must be unique).
+ * @apiBody {String} password Plaintext password (hashed server-side, never stored in plaintext).
  *
  * @apiSuccess (201) {Number} user.id New user id.
  * @apiSuccess (201) {String} user.email Registered email.
@@ -24,6 +22,21 @@ const SALT_ROUNDS = 10;
  *     {
  *       "user": { "id": 1, "email": "you@example.com" }
  *     }
+ *
+ * @apiError (400) {String} error Missing email or password field.
+ * @apiErrorExample {json} Missing fields
+ *     HTTP/1.1 400 Bad Request
+ *     { "error": "email and password are required" }
+ *
+ * @apiError (409) {String} error Email already registered.
+ * @apiErrorExample {json} Duplicate email
+ *     HTTP/1.1 409 Conflict
+ *     { "error": "Email already registered" }
+ *
+ * @apiError (500) {String} error Unexpected server error.
+ * @apiErrorExample {json} Server error
+ *     HTTP/1.1 500 Internal Server Error
+ *     { "error": "Server error" }
  */
 router.post("/register", async (req, res) => {
   const { email, password } = req.body || {};
@@ -47,12 +60,12 @@ router.post("/register", async (req, res) => {
  * @api {post} /api/auth/login Login
  * @apiName Login
  * @apiGroup Auth
- * @apiDescription Verify email/password with bcrypt and return a JWT for protected routes.
+ * @apiDescription Verify email/password with bcrypt and return a signed JWT for protected routes.
  *
- * @apiBody {String} email
- * @apiBody {String} password
+ * @apiBody {String} email Registered email address.
+ * @apiBody {String} password Plaintext password to verify against the stored bcrypt hash.
  *
- * @apiSuccess (200) {String} token JWT (send as `Authorization: Bearer <token>`).
+ * @apiSuccess (200) {String} token Signed JWT — send as Authorization: Bearer token on protected requests.
  * @apiSuccess (200) {Object} user
  * @apiSuccess (200) {Number} user.id
  * @apiSuccess (200) {String} user.email
@@ -62,6 +75,17 @@ router.post("/register", async (req, res) => {
  *       "token": "<jwt>",
  *       "user": { "id": 1, "email": "demo@example.com" }
  *     }
+ *
+ * @apiError (400) {String} error Missing email or password field.
+ * @apiErrorExample {json} Missing fields
+ *     HTTP/1.1 400 Bad Request
+ *     { "error": "email and password are required" }
+ *
+ * @apiError (401) {String} error Invalid credentials. Returned for both wrong email and wrong
+ *   password (deliberately ambiguous to prevent user enumeration attacks).
+ * @apiErrorExample {json} Invalid credentials
+ *     HTTP/1.1 401 Unauthorized
+ *     { "error": "Invalid credentials" }
  */
 router.post("/login", async (req, res) => {
   const { email, password } = req.body || {};

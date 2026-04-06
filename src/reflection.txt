@@ -1,0 +1,74 @@
+CS300 – Lab 9 Reflection
+The author is Alexandre Franz Pries Jr.
+priesalexandre@myocu.oak.edu
+========================================
+
+Question 1 -bcrypt Salt rounds.
+---------------------------------
+The second point supporting the use of bcrypt. hash ( password, 10) is cost factor(salt rounds).
+It has a control over the number of iterations taken by the algorithm that is 2 n, that is, 10 rounds.
+= 1,024 iterations.
+
+One of the factors such as 4 is low, hence, hashing is almost instant, which is fast to the server but not fast enough.
+also attack with millions of guesses that an attacker does. The factor of 14 is large 14 Indicates a large mean.
+Hashing each requires a significantly longer time and brute-force would become exponentially higher.
+
+Plain SHA- 256 was meant to be fast enough- Billions of hashes per second using current GPUs.
+The butterworthshire bcrypt is designed to be slow. Each guess incurs a cost even when there has been a stolen database.
+the costly calculation of the same nature, and cracking those thousands of times more difficult than SHA-256.
+
+Question 2 -JWT Payload Design.
+---------------------------------
+We inject id and email since the server would require the user identification on every request.
+This password is never contained since JWTs are signed, but not encrypted - anyone.
+the recipient of the message in question is able to decode and read the token. The uncovering of the hash would be a.
+direct security leak.
+
+In case a bad user made adjustments to the payload such as altering his/her id to that of an administrator, the
+matching signature could no longer take place. The JWT signature is a hash of the message with a crypto-graphic hash.
+header and payload with JWT significant of the server with JWT_SECRET. Again replacing a single personality.
+checks the signature under consideration. jt.verify reaccommodates the anticipated signature and matches.
+it; in case they are not the same, it throws and verifyToken() returns null. Without knowing the
+secret, forgery of valid signature by the attacker is not possible.
+
+Question 3 -Middleware Order and next.
+-----------------------------------------
+When authenticate() sets the user on the request and fails to call next then the request keeps hanging.
+Express does not innovate automatically, it waits until the middleware that it is currently using finishes.
+make next call/ send a response.
+
+Processes middleware that represents registration order, only on the next is called.
+When a middleware provides a response and subsequent in the same response invokes next then one leads to a "Headers already sent"
+error - then the right way to do it is to make a reply right away.
+
+Express sends the following when the authenticate calls res.status(401).json(...) is called instead of next.
+response immediately. The call to router handler is never made since the reach to the router is terminated by authenticate.
+request-response cycle. Here is the gating behavior desirable - unauthenticated requests.
+before reaching any business logic are rejected the extent of the business logic.
+
+Suspicion of Question 4 Intentional ambiguity in login()
+-----------------------------------------------
+Provision of the same null to the return of the user not found and the return of wrong password will avoid a user.
+enumeration attack. In case the API responded with varying messages, then an attacker can enquire with.
+several emails to know the addresses registered.
+
+The attacker can bypass the two cases by responding to each one in the same manner by using only one generic error response, which is inappropriate credentials.
+knows nothing whether an email exists or not. This renders the use of credential stuffing attacks.
+even more difficult since the attacker does not know what emails have been eliminated as one of the valid targets.
+
+Question 5 – Stateless Authentication
+---------------------------------------
+Stateless entails there are no session data in the server. The carrying capacity of the token itself in JWTs is present.
+type of information required including all the information required that is, the server need only the secret key to authenticate the signature.
+A database location is not necessary with each request hence the system is faster and simpler to scale.
+
+The only problem is that since the server does not store anything, it does not have a list of things to revoke.
+JWTs comply with the principal terms and conditions until the time of expiry irrespective of the events following the issuance. If an
+account is compromised, the token cannot be deleted it is not recorded on the server.
+
+Two common solutions:
+1. Token blocklist (denylist) - keep revoked tokens in some cache such as Redis. The middleware
+   compares every token with the blocklist and access is granted. Enables immediate revocation.
+2. Short expiration + refresh tokens Sony access tokens have a short lifetime (e.g. 15 min).
+   An extended access token releases new access tokens. Managing the refresh token Revoking the refresh token.
+   removes the ability of the attacker to renew access once the short time token is expired.

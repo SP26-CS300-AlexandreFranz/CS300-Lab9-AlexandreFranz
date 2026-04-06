@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const { requestLogger } = require("./middleware/requestLogger");
+const { requestId } = require("./middleware/requestId");
 const { authRouter } = require("./routes/auth");
 const { entriesRouter } = require("./routes/entries");
 
@@ -8,8 +9,8 @@ const app = express();
 
 app.use(express.json());
 
-// Middleware chain example — add more (CORS, etc.) here per lab instructions.
 app.use(requestLogger);
+app.use(requestId);
 
 app.use("/api/auth", authRouter);
 app.use("/api/entries", entriesRouter);
